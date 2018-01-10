@@ -1,6 +1,8 @@
 #pragma once
 
 #include "ofMain.h"
+#include "Point.h"
+#include "Spring.h"
 
 class ofApp : public ofBaseApp{
 
@@ -21,4 +23,11 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 		
+		//wektory
+		vector<Point*> myPoints;
+		vector<Spring*> mySprings;
+
+		//sta³e
+		float G;
+
 };
