@@ -11,6 +11,7 @@ Point::Point(float x, float y, float mass)
 	this->fx = 0;
 	this->fy = 0;
 	this->mass = mass;
+	isStatic = false;
 }
 
 

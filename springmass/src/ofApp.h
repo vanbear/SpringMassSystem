@@ -23,11 +23,15 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 		
+		// rysowanie springów
+		void drawAllSprings();
+
 		//wektory
 		vector<Point*> myPoints;
 		vector<Spring*> mySprings;
 
 		//sta³e
 		float G;
+		float KS, KD;
 
 };

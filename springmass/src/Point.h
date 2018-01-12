@@ -8,5 +8,6 @@ public:
 	void draw();
 
 	float x, y, vx, vy, fx, fy, mass; // po³o¿enie, prêdkoœæ, si³y
+	bool isStatic; // czy ma siê poruszaæ
 };
 
