@@ -31,7 +31,7 @@ class ofApp : public ofBaseApp{
 		vector<Spring*> mySprings;
 
 		//sta³e
-		float G;
-		float KS, KD;
+		float G;		// grawitacja
+		float KS, KD;	// jakieœ tam
 
 };

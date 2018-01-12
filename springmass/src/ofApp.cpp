@@ -6,19 +6,20 @@
 //--------------------------------------------------------------
 void ofApp::setup(){
 	ofSetBackgroundColor(0, 0, 0);
+	ofSetFrameRate(60);
 
-	G = 0.01;
-	KS = .00001;
-	KD = .01;
+	G = 9.8;
+	KS = 1755.0;
+	KD = 35.0;
 
-	myPoints.push_back(new Point(100, 100, 1)); 
-	myPoints.push_back(new Point(200, 200, .1));
-	myPoints.push_back(new Point(300, 300, .1));
-	myPoints.push_back(new Point(400, 400, .01));
+	myPoints.push_back(new Point(ofGetWidth()/2, 100, 1)); 
+	myPoints.push_back(new Point(200, 200, 1));
+	myPoints.push_back(new Point(300, 200, 1));
+	myPoints.push_back(new Point(400, 400, 1));
 
 	mySprings.push_back(new Spring(0, 1, 20));
 	mySprings.push_back(new Spring(0, 2, 50));
-	mySprings.push_back(new Spring(2, 3, 10));
+	mySprings.push_back(new Spring(2, 3, 100));
 
 	myPoints[0]->isStatic = true;
 }
@@ -28,61 +29,36 @@ void ofApp::update(){
 	
 	// grawitacja
 	for (auto &p : myPoints)
-		if (!p->isStatic)
-			p->fy = p->mass*G;
-		else
-			p->fy = 0;
+		p->v_forces.y = p->mass*G;
 
+	// si³a sprê¿ystoœci
 	for (auto &s : mySprings)
 	{
 		// liczenie odleg³oœci miêdzy po³¹czonymi punktami
-		float x1 = myPoints[s->i]->x;
-		float x2 = myPoints[s->j]->x;
-		float y1 = myPoints[s->i]->y;
-		float y2 = myPoints[s->j]->y;
+		Point *p1 = myPoints[s->i];		Point *p2 = myPoints[s->j];
+		ofVec2f pos1 = p1->v_position;	ofVec2f pos2 = p2->v_position;
+		float dist = pos1.distance(pos2);
 
-		float dl = sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2));	
-
-		// si³a sprê¿ystoœci
-		if (s->length != 0)
+		if (dist != 0)
 		{
-			float vx1 = myPoints[s->i]->vx;
-			float vx2 = myPoints[s->j]->vx;
-			float vx = vx1 - vx2;
-
-			float vy1 = myPoints[s->i]->vy;
-			float vy2 = myPoints[s->j]->vy;
-			float vy = vy1 - vy2;
-
-			//TODO
-			float f = (dl - s->length)* KS + (vx*(x1 - x2) + vy*(y1 - y2))*KD / dl;
-			float fx = ((x1 - x2) / dl)*f;
-			float fy = ((y1 - y2) / dl)*f;
-
-			if (!myPoints[s->i]->isStatic)
-			{
-				myPoints[s->i]->fx -= fx;
-				myPoints[s->i]->fy -= fy;
-			}
-				
-			if (!myPoints[s->j]->isStatic)
-			{
-				myPoints[s->j]->fx += fx;
-				myPoints[s->j]->fy += fy;
-			}
-
-			std::cout << "x " << myPoints[s->i]->x << endl;
-			std::cout << "fx " << myPoints[s->i]->fx << endl;
+			//float vn = p1->v_velocity.distance(p2->v_velocity);
+			ofVec2f vn = p1->v_velocity - p2->v_velocity;	// ró¿nica prêdkoœci
+			ofVec2f dpos = pos1 - pos2;						// ró¿nica po³o¿eñ
 			
+			// si³y
+			//ofVec2f f = (dist - s->length) * (dpos / dist) * KS + vn.dot(dpos / dist) * KD;
+			ofVec2f f = (dist - s->length) * KS + (vn * dpos) * KD / dist;
+			ofVec2f F = f * (dpos / dist);
+			p1->v_forces -= F;
+			p2->v_forces += F;
 		}
-		
 	}
 
-
+	// aktualizacja po³o¿eñ
 	for (auto &p : myPoints)
-		p->updatePosition();
-
-	std::cout << myPoints[0]->x << endl;
+	{
+		p->updateVerlet();
+	}
 }
 
 //--------------------------------------------------------------
@@ -156,10 +132,8 @@ void ofApp::drawAllSprings()
 {
 	for (auto s : mySprings)
 	{
-		float x1 = myPoints[s->i]->x;
-		float x2 = myPoints[s->j]->x;
-		float y1 = myPoints[s->i]->y;
-		float y2 = myPoints[s->j]->y;
-		ofDrawLine(x1,y1,x2,y2);
+		ofVec2f pos1 = myPoints[s->i]->v_position;
+		ofVec2f pos2 = myPoints[s->j]->v_position;
+		ofDrawLine(pos1.x, pos1.y, pos2.x, pos2.y);
 	}
 }
