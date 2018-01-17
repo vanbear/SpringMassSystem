@@ -12,14 +12,15 @@ void ofApp::setup(){
 	KS = 1755.0;
 	KD = 35.0;
 	counter = 0;
-	pointSize = 5;
+	pointSize = 10;
+	dragForce = { 0,0 };
 
 	// nowy punkt (x, y, masa, isStatic)
 	myPoints.push_back(new Point(ofGetWidth() / 2, 100, 1, true));
-	myPoints.push_back(new Point(ofGetWidth() / 2 - 10, 120, 1, false));
-	myPoints.push_back(new Point(ofGetWidth() / 2 - 20, 140, 1, false));
-	myPoints.push_back(new Point(ofGetWidth() / 2 - 30, 160, 1, false));
-	myPoints.push_back(new Point(ofGetWidth() / 2 - 40, 180, 1, false));
+	myPoints.push_back(new Point(ofGetWidth() / 2 - 10, 140, 1, false));
+	myPoints.push_back(new Point(ofGetWidth() / 2 - 20, 180, 1, false));
+	myPoints.push_back(new Point(ofGetWidth() / 2 - 30, 220, 1, false));
+	myPoints.push_back(new Point(ofGetWidth() / 2 - 40, 260, 1, false));
 
 	mySprings.push_back(new Spring(0, 1, myPoints));
 	mySprings.push_back(new Spring(1, 2, myPoints));
@@ -60,7 +61,15 @@ void ofApp::update(){
 			ofVec2f F = f * (dpos / dist);
 			p1->v_forces -= F;
 			p2->v_forces += F;
+			
 		}
+	}
+
+	if (selectedPoint)
+	{
+		ofVec2f mousePos = { float(mouseX), float(mouseY) };
+		dragForce = (mousePos - selectedPoint->v_position);
+		selectedPoint->v_forces += dragForce;
 	}
 
 	// aktualizacja po³o¿eñ
@@ -83,6 +92,14 @@ void ofApp::draw(){
 	drawPoints();
 	drawAllSprings();
 	drawVelocities();
+	if (selectedPoint)
+	{
+		ofSetColor(0, 255, 0);
+		ofDrawCircle(selectedPoint->v_position, 5);
+		ofSetColor(255, 255, 255);
+	}
+	if (selectedPoint)
+		ofDrawLine(selectedPoint->v_position, selectedPoint->v_position + dragForce);
 
 }
 
@@ -103,29 +120,30 @@ void ofApp::mouseMoved(int x, int y ){
 
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button){
-	ofVec2f mousePos = ofVec2f(x, y); // po³o¿enie kursora
-	for (auto &p : myPoints)
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mousePressed(int x, int y, int button){
+	for (auto const &p : myPoints)
 	{
+		ofVec2f mousePos = ofVec2f(x, y);
 		ofVec2f tempPos = mousePos - p->v_position;
 		float dist = tempPos.length();
 
 		if (dist < pointSize)
 		{
-			p->v_position = { (float)x,(float)y };
-			p->v_forces = { 0,0 };
-			p->v_velocity = { 0,0 };
+			selectedPoint = p;
 		}
 	}
 }
 
 //--------------------------------------------------------------
-void ofApp::mousePressed(int x, int y, int button){
-	
-}
-
-//--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button){
-
+	clickPoint = nullptr;
+	delete clickPoint;
+	selectedPoint = nullptr;
+	delete selectedPoint;
 }
 
 //--------------------------------------------------------------
