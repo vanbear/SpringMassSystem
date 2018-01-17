@@ -4,10 +4,10 @@
 class Point
 {
 public:
-	Point(float x, float y, float mass);
+	Point(float x, float y, float mass, bool isStatic);
 	~Point();
-	void draw();
 	void updateVerlet();
+	void updateEuler();
 
 	ofVec2f v_positionOld;
 	ofVec2f v_position;
@@ -15,7 +15,8 @@ public:
 
 	ofVec2f v_velocity; 
 	ofVec2f v_forces;
-	float mass;// po³o¿enie, prêdkoœæ, si³y
-	bool isStatic; // czy ma siê poruszaæ
+	float m_mass;// po³o¿enie, prêdkoœæ, si³y
+	bool m_isStatic; // czy ma siê poruszaæ
+	float dt;
 };
 

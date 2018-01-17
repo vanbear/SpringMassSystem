@@ -2,14 +2,17 @@
 #include <ofGraphics.h>
 
 
-Point::Point(float x, float y, float mass)
+Point::Point(float x, float y, float mass, bool isStatic)
 {
-	this->v_position = { x,y };
-	this->v_positionOld = { x,y };
-	this->v_velocity = { 0,0 };
-	this->v_forces = { 0,0 };
-	this->mass = mass;
-	this->isStatic = false;
+	
+	v_positionOld = { x,y };
+	v_position = { x,y };
+	v_velocity = { 0,0 };
+	v_forces = { 0,0 };
+	m_mass = mass;
+	m_isStatic = isStatic;
+	dt = 0.025;
+
 }
 
 Point::~Point()
@@ -17,17 +20,23 @@ Point::~Point()
 }
 
 
-void Point::draw()
-{
-	ofDrawCircle(this->v_position, 5);
-}
-
 void Point::updateVerlet()
 {
-	if (!this->isStatic)
+	if (!m_isStatic)
 	{
-		this->v_positionNew = 2 * this->v_position - this->v_positionOld + (0.01*0.01*this->v_forces / this->mass);
-		this->v_positionOld = this->v_position;
-		this->v_position = this->v_positionNew;
+		v_positionNew = 2 * v_position - v_positionOld + (dt*dt*v_forces / m_mass);
+		v_positionOld = v_position;
+		v_position = v_positionNew;
+	}
+}
+
+void Point::updateEuler()
+{
+	if (!m_isStatic)
+	{
+		v_velocity += v_forces * dt;
+		v_positionNew = v_position + v_velocity * dt;
+		v_positionOld = v_position;
+		v_position = v_positionNew;
 	}
 }

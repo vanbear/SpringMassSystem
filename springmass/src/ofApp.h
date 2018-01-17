@@ -23,8 +23,10 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 		
-		// rysowanie springów
-		void drawAllSprings();
+		// rysowanie 
+		void drawAllSprings(); // springi
+		void drawVelocities(); // prêdkoœci
+		void drawPoints();	   // punkty
 
 		//wektory
 		vector<Point*> myPoints;
@@ -32,6 +34,8 @@ class ofApp : public ofBaseApp{
 
 		//sta³e
 		float G;		// grawitacja
-		float KS, KD;	// jakieœ tam
+		float KS, KD;	// jakieœ tam wspó³czynniki
+		int counter;	// licznik kroków
+		float pointSize; // rozmiar punktów
 
 };

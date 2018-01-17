@@ -1,12 +1,12 @@
 #include "Spring.h"
+#include <ofVec2f.h>
+#include "Point.h"
 
-
-
-Spring::Spring(int i, int j, float length)
+Spring::Spring(int i, int j, std::vector<Point*> &points)
 {
 	this->i = i;
 	this->j = j;
-	this->length = length;
+	length = points[this->i]->v_position.distance(points[this->j]->v_position);
 }
 
 

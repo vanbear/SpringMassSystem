@@ -1,8 +1,12 @@
 #pragma once
+
+#include <vector>
+#include "Point.h"
+
 class Spring
 {
 public:
-	Spring(int i, int j, float length);
+	Spring(int i, int j, std::vector<Point*> &points);
 	~Spring();
 	void draw();
 

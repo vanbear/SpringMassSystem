@@ -8,20 +8,24 @@ void ofApp::setup(){
 	ofSetBackgroundColor(0, 0, 0);
 	ofSetFrameRate(60);
 
-	G = 9.8;
+	G = 90;
 	KS = 1755.0;
 	KD = 35.0;
+	counter = 0;
+	pointSize = 5;
 
-	myPoints.push_back(new Point(ofGetWidth()/2, 100, 1)); 
-	myPoints.push_back(new Point(200, 200, 1));
-	myPoints.push_back(new Point(300, 200, 1));
-	myPoints.push_back(new Point(400, 400, 1));
+	// nowy punkt (x, y, masa, isStatic)
+	myPoints.push_back(new Point(ofGetWidth() / 2, 100, 1, true));
+	myPoints.push_back(new Point(ofGetWidth() / 2 - 10, 120, 1, false));
+	myPoints.push_back(new Point(ofGetWidth() / 2 - 20, 140, 1, false));
+	myPoints.push_back(new Point(ofGetWidth() / 2 - 30, 160, 1, false));
+	myPoints.push_back(new Point(ofGetWidth() / 2 - 40, 180, 1, false));
 
-	mySprings.push_back(new Spring(0, 1, 20));
-	mySprings.push_back(new Spring(0, 2, 50));
-	mySprings.push_back(new Spring(2, 3, 100));
+	mySprings.push_back(new Spring(0, 1, myPoints));
+	mySprings.push_back(new Spring(1, 2, myPoints));
+	mySprings.push_back(new Spring(2, 3, myPoints));
+	mySprings.push_back(new Spring(3, 4, myPoints));
 
-	myPoints[0]->isStatic = true;
 }
 
 //--------------------------------------------------------------
@@ -29,7 +33,11 @@ void ofApp::update(){
 	
 	// grawitacja
 	for (auto &p : myPoints)
-		p->v_forces.y = p->mass*G;
+	{
+		p->v_forces.y = p->m_mass*G;
+		p->v_forces.x = 0;
+	}
+		
 
 	// si³a sprê¿ystoœci
 	for (auto &s : mySprings)
@@ -41,12 +49,13 @@ void ofApp::update(){
 
 		if (dist != 0)
 		{
-			//float vn = p1->v_velocity.distance(p2->v_velocity);
+			// prêdkoœci z po³o¿eñ 
+			p1->v_velocity = p1->v_position - p1->v_positionOld;
+			p2->v_velocity = p2->v_position - p2->v_positionOld;
 			ofVec2f vn = p1->v_velocity - p2->v_velocity;	// ró¿nica prêdkoœci
 			ofVec2f dpos = pos1 - pos2;						// ró¿nica po³o¿eñ
 			
 			// si³y
-			//ofVec2f f = (dist - s->length) * (dpos / dist) * KS + vn.dot(dpos / dist) * KD;
 			ofVec2f f = (dist - s->length) * KS + (vn * dpos) * KD / dist;
 			ofVec2f F = f * (dpos / dist);
 			p1->v_forces -= F;
@@ -55,26 +64,31 @@ void ofApp::update(){
 	}
 
 	// aktualizacja po³o¿eñ
-	for (auto &p : myPoints)
-	{
-		p->updateVerlet();
-	}
+	if (counter < 2)
+		for (auto &p : myPoints)
+		{
+			p->updateEuler();
+			counter++;
+		}
+	else
+		for (auto &p : myPoints)
+		{
+			p->updateVerlet();
+		}
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
 
-	for (auto &p : myPoints)
-	{
-		p->draw();
-	}
+	drawPoints();
 	drawAllSprings();
+	drawVelocities();
 
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-
+	
 }
 
 //--------------------------------------------------------------
@@ -89,12 +103,24 @@ void ofApp::mouseMoved(int x, int y ){
 
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button){
+	ofVec2f mousePos = ofVec2f(x, y); // po³o¿enie kursora
+	for (auto &p : myPoints)
+	{
+		ofVec2f tempPos = mousePos - p->v_position;
+		float dist = tempPos.length();
 
+		if (dist < pointSize)
+		{
+			p->v_position = { (float)x,(float)y };
+			p->v_forces = { 0,0 };
+			p->v_velocity = { 0,0 };
+		}
+	}
 }
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
-
+	
 }
 
 //--------------------------------------------------------------
@@ -130,10 +156,29 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 
 void ofApp::drawAllSprings()
 {
-	for (auto s : mySprings)
+	for (auto const& s : mySprings)
 	{
 		ofVec2f pos1 = myPoints[s->i]->v_position;
 		ofVec2f pos2 = myPoints[s->j]->v_position;
-		ofDrawLine(pos1.x, pos1.y, pos2.x, pos2.y);
+		ofSetLineWidth(5);
+		ofDrawLine(pos1,pos2);
+		ofSetLineWidth(1);
 	}
+}
+
+void ofApp::drawVelocities()
+{
+	for (auto const &p : myPoints)
+	{
+		ofSetColor(255, 0, 0);
+		ofVec2f pos = p->v_position;
+		ofDrawLine(pos, pos + p->v_velocity*10);
+		ofSetColor(255, 255, 255);
+	}
+}
+
+void ofApp::drawPoints()
+{
+	for (auto const &p : myPoints)
+		ofDrawCircle(p->v_position, pointSize);
 }
