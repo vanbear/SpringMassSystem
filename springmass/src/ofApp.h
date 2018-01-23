@@ -3,6 +3,7 @@
 #include "ofMain.h"
 #include "Point.h"
 #include "Spring.h"
+#include "Player.h"
 #include <ofVec2f.h>
 
 class ofApp : public ofBaseApp{
@@ -34,12 +35,16 @@ class ofApp : public ofBaseApp{
 		vector<Spring*> mySprings;
 		Point *clickPoint;
 		Point *selectedPoint;
+		Point *grabbedPoint;
 		ofVec2f dragForce;
+		Player *player;
 
 		//sta³e
 		float G;		// grawitacja
 		float KS, KD;	// jakieœ tam wspó³czynniki
 		int counter;	// licznik kroków
 		float pointSize; // rozmiar punktów
+		float groundHeight; // wysokoœæ pod³o¿a
+		bool debug; // false - off, true - on
 
 };

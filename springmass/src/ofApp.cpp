@@ -14,6 +14,8 @@ void ofApp::setup(){
 	counter = 0;
 	pointSize = 10;
 	dragForce = { 0,0 };
+	debug = false;
+	groundHeight = 500;
 
 	// nowy punkt (x, y, masa, isStatic)
 	myPoints.push_back(new Point(ofGetWidth() / 2, 100, 1, true));
@@ -27,6 +29,7 @@ void ofApp::setup(){
 	mySprings.push_back(new Spring(2, 3, myPoints));
 	mySprings.push_back(new Spring(3, 4, myPoints));
 
+	player = new Player(100, 200, 10);
 }
 
 //--------------------------------------------------------------
@@ -39,7 +42,7 @@ void ofApp::update(){
 		p->v_forces.x = 0;
 	}
 		
-
+	// ============================================== SPRÊ¯YNA
 	// si³a sprê¿ystoœci
 	for (auto &s : mySprings)
 	{
@@ -84,6 +87,11 @@ void ofApp::update(){
 		{
 			p->updateVerlet();
 		}
+
+	// ============================================ GRACZ
+	player->v_speed.y = 1;
+
+	player->updatePosition();
 }
 
 //--------------------------------------------------------------
@@ -91,26 +99,39 @@ void ofApp::draw(){
 
 	drawPoints();
 	drawAllSprings();
-	drawVelocities();
-	if (selectedPoint)
+	ofDrawLine(0, groundHeight, ofGetWidth(), groundHeight);
+	if (player) player->draw();
+	if (debug)
 	{
-		ofSetColor(0, 255, 0);
-		ofDrawCircle(selectedPoint->v_position, 5);
-		ofSetColor(255, 255, 255);
+		drawVelocities();
+		if (selectedPoint)
+		{
+			ofSetColor(0, 255, 0);
+			ofDrawCircle(selectedPoint->v_position, 5);
+			ofSetColor(255, 255, 255);
+		}
+		if (selectedPoint)
+			ofDrawLine(selectedPoint->v_position, selectedPoint->v_position + dragForce);
 	}
-	if (selectedPoint)
-		ofDrawLine(selectedPoint->v_position, selectedPoint->v_position + dragForce);
+	
 
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-	
+	if (key == 'a')
+	{
+		player->v_speed.x = -5;
+	}
+	if (key == 'd')
+	{
+		player->v_speed.x = 5;
+	}
 }
 
 //--------------------------------------------------------------
 void ofApp::keyReleased(int key){
-
+	if (key == 'a' || key == 'd') player->v_speed.x = 0;
 }
 
 //--------------------------------------------------------------
