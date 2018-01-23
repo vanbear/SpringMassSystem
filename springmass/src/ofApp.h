@@ -29,22 +29,29 @@ class ofApp : public ofBaseApp{
 		void drawAllSprings(); // springi
 		void drawVelocities(); // prêdkoœci
 		void drawPoints();	   // punkty
+		// tworzenie linki
+		void createLine(float x, float y);
 
 		//wektory
 		vector<Point*> myPoints;
 		vector<Spring*> mySprings;
 		Point *clickPoint;
 		Point *selectedPoint;
-		Point *grabbedPoint;
 		ofVec2f dragForce;
 		Player *player;
 
-		//sta³e
+		// sta³e
 		float G;		// grawitacja
 		float KS, KD;	// jakieœ tam wspó³czynniki
-		int counter;	// licznik kroków
+
+		// konfiguracja sceny
 		float pointSize; // rozmiar punktów
 		float groundHeight; // wysokoœæ pod³o¿a
+		ofColor springColor;
+
+		// obs³uga programu
+		int counter;	// licznik kroków
 		bool debug; // false - off, true - on
+		bool keyIsDown[255]; // obs³uga klawiatury
 
 };

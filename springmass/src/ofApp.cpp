@@ -15,21 +15,14 @@ void ofApp::setup(){
 	pointSize = 10;
 	dragForce = { 0,0 };
 	debug = false;
-	groundHeight = 500;
+	groundHeight = 450;
+	springColor = { 10,255,10 };
 
-	// nowy punkt (x, y, masa, isStatic)
-	myPoints.push_back(new Point(ofGetWidth() / 2, 100, 1, true));
-	myPoints.push_back(new Point(ofGetWidth() / 2 - 10, 140, 1, false));
-	myPoints.push_back(new Point(ofGetWidth() / 2 - 20, 180, 1, false));
-	myPoints.push_back(new Point(ofGetWidth() / 2 - 30, 220, 1, false));
-	myPoints.push_back(new Point(ofGetWidth() / 2 - 40, 260, 1, false));
+	createLine(200, 100);
+	createLine(500, 100);
+	createLine(800, 100);
 
-	mySprings.push_back(new Spring(0, 1, myPoints));
-	mySprings.push_back(new Spring(1, 2, myPoints));
-	mySprings.push_back(new Spring(2, 3, myPoints));
-	mySprings.push_back(new Spring(3, 4, myPoints));
-
-	player = new Player(100, 200, 10);
+	player = new Player(100, 200, 15);
 }
 
 //--------------------------------------------------------------
@@ -75,6 +68,16 @@ void ofApp::update(){
 		selectedPoint->v_forces += dragForce;
 	}
 
+	// gdy gracz trzyma linkê jakomœ
+	// bardzo prowizoryczne bujanie siê na lince
+	if (player->isHoldingLine)
+	{
+		if (keyIsDown['a'])
+			player->grabbedPoint->v_forces.x -= 100;
+		if (keyIsDown['d'])
+			player->grabbedPoint->v_forces.x += 100;
+	}
+
 	// aktualizacja po³o¿eñ
 	if (counter < 2)
 		for (auto &p : myPoints)
@@ -88,10 +91,58 @@ void ofApp::update(){
 			p->updateVerlet();
 		}
 
-	// ============================================ GRACZ
-	player->v_speed.y = 1;
+	// ============================================ BARDZO PROWIZORYCZNY GRACZ
+	player->v_speed.y += .5; // grawitacja
+	if (player->v_speed.y >= 15) player->v_speed.y = 15; //ograniczenie prêdkoœci spadania
 
+	// bardzo prowizoryczna kolizja z pod³o¿em 
+	if (player->v_position.y > groundHeight - player->m_radius) 
+	{
+		player->v_speed.y = 0;
+		// a gdy siê oka¿e, ¿e wyl¹dowa³ pod pod³og¹
+		if (player->v_position.y > groundHeight - player->m_radius) 
+			player->v_position.y = groundHeight - player->m_radius; 
+	}
+
+	// bardzo prowizoryczne skakanie
+	if (player->v_position.y == groundHeight - player->m_radius) // gdy stoi na pod³o¿u
+		if (keyIsDown['w'] && player->v_speed.y == 0)
+			player->v_speed.y = -15;
+
+	// bardzo prowizoryczne poruszanie siê w poziomie
+	if (keyIsDown['a']) player->v_speed.x = -5;
+	else if (keyIsDown['d']) player->v_speed.x = 5;
+	else if (player->v_speed.x != 0)
+		if (player->v_speed.x > 0)
+			player->v_speed.x -= .5;
+		else
+			player->v_speed.x += .5;
+
+	// takie ma³o prowizoryczne aktualizowanie po³o¿enia
 	player->updatePosition();
+
+	// bardzo prowizoryczne sprawdzanie kolizji z punktami
+	if (keyIsDown['e'] && !player->isHoldingLine)
+		for (auto &p : myPoints)
+		{
+			float dist = player->v_position.distance(p->v_position);
+			if (dist < (player->m_radius + pointSize))
+			{
+				player->grabbedPoint = p;
+				player->isHoldingLine = true;
+				break;
+			}
+		}
+
+	// bardzo prowizoryczne puszczanie siê linki
+	if (player->isHoldingLine && keyIsDown['w'] && !keyIsDown['e'])
+	{
+		player->grabbedPoint = nullptr;
+		player->isHoldingLine = false;
+		player->v_speed.y = -10;
+	}
+
+	
 }
 
 //--------------------------------------------------------------
@@ -103,6 +154,14 @@ void ofApp::draw(){
 	if (player) player->draw();
 	if (debug)
 	{
+		ofDrawBitmapString("Debug ON", 10, 15);
+		if (player->isHoldingLine)
+		{
+			char str[255];
+			sprintf(str, "Grabbed line forces: %f %f",player->grabbedPoint->v_forces.x, player->grabbedPoint->v_forces.y);
+			ofDrawBitmapString(str, 10, 30);
+		}
+		
 		drawVelocities();
 		if (selectedPoint)
 		{
@@ -119,19 +178,17 @@ void ofApp::draw(){
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-	if (key == 'a')
+	if (key == 'p')
 	{
-		player->v_speed.x = -5;
+		debug = !debug;
 	}
-	if (key == 'd')
-	{
-		player->v_speed.x = 5;
-	}
+	
+	keyIsDown[key] = true;
 }
 
 //--------------------------------------------------------------
 void ofApp::keyReleased(int key){
-	if (key == 'a' || key == 'd') player->v_speed.x = 0;
+	keyIsDown[key] = false;
 }
 
 //--------------------------------------------------------------
@@ -195,14 +252,16 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 
 void ofApp::drawAllSprings()
 {
+	ofSetColor(springColor);
+	ofSetLineWidth(5);
 	for (auto const& s : mySprings)
 	{
 		ofVec2f pos1 = myPoints[s->i]->v_position;
 		ofVec2f pos2 = myPoints[s->j]->v_position;
-		ofSetLineWidth(5);
 		ofDrawLine(pos1,pos2);
-		ofSetLineWidth(1);
 	}
+	ofSetLineWidth(1);
+	ofSetColor(255, 255, 255);
 }
 
 void ofApp::drawVelocities()
@@ -218,6 +277,26 @@ void ofApp::drawVelocities()
 
 void ofApp::drawPoints()
 {
+	ofSetColor(springColor);
 	for (auto const &p : myPoints)
 		ofDrawCircle(p->v_position, pointSize);
+	ofSetColor(255, 255, 255);
+}
+
+void ofApp::createLine(float x, float y)
+{
+	// co by wiedzieæ ile ju¿ jest naszych punktów
+	int currentSize = myPoints.size();
+
+	// nowy punkt (x, y, masa, isStatic)
+	myPoints.push_back(new Point(x, y, 1, true));
+	myPoints.push_back(new Point(x-10, y+40, 1, false));
+	myPoints.push_back(new Point(x+10, y+80, 1, false));
+	myPoints.push_back(new Point(x-10, y+120, 1, false));
+	myPoints.push_back(new Point(x+10, y+160, 1, false));
+
+	mySprings.push_back(new Spring(currentSize, currentSize+1, myPoints));
+	mySprings.push_back(new Spring(currentSize+1, currentSize+2, myPoints));
+	mySprings.push_back(new Spring(currentSize+2, currentSize+3, myPoints));
+	mySprings.push_back(new Spring(currentSize+3, currentSize+4, myPoints));
 }

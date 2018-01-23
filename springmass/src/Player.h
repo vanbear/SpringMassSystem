@@ -1,5 +1,6 @@
 #pragma once
 #include <ofVec3f.h>
+#include "Point.h"
 class Player
 {
 
@@ -14,5 +15,7 @@ public:
 	ofVec3f v_position;
 	ofVec3f v_speed;
 	float m_radius;
+	bool isHoldingLine;
+	Point* grabbedPoint;
 };
 
