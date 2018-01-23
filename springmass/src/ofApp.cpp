@@ -72,6 +72,7 @@ void ofApp::update(){
 	// bardzo prowizoryczne bujanie siê na lince
 	if (player->isHoldingLine)
 	{
+		player->grabbedPoint->v_forces.y += 500;
 		if (keyIsDown['a'])
 			player->grabbedPoint->v_forces.x -= 100;
 		if (keyIsDown['d'])
