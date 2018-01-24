@@ -47,7 +47,8 @@ class ofApp : public ofBaseApp{
 		// konfiguracja sceny
 		float pointSize; // rozmiar punktów
 		float groundHeight; // wysokoœæ pod³o¿a
-		ofColor springColor;
+		ofColor springColor; // kolor liny
+		ofTrueTypeFont tarzanFont; // czcionka 
 
 		// obs³uga programu
 		int counter;	// licznik kroków

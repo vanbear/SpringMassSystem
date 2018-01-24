@@ -17,6 +17,7 @@ void ofApp::setup(){
 	debug = false;
 	groundHeight = 450;
 	springColor = { 10,255,10 };
+	tarzanFont.loadFont("verdana.ttf", 10);
 
 	createLine(200, 100);
 	createLine(500, 100);
@@ -72,12 +73,27 @@ void ofApp::update(){
 	// bardzo prowizoryczne bujanie siê na lince
 	if (player->isHoldingLine)
 	{
-		player->grabbedPoint->v_forces.y += 500;
+		//player->grabbedPoint->v_forces.y += 500;
 		if (keyIsDown['a'])
 			player->grabbedPoint->v_forces.x -= 100;
 		if (keyIsDown['d'])
 			player->grabbedPoint->v_forces.x += 100;
 	}
+
+	// bardzo prowizoryczne sprawdzanie kolizji z punktami
+	if (keyIsDown['e'] && !player->isHoldingLine)
+		for (auto &p : myPoints)
+		{
+			float dist = player->v_position.distance(p->v_position);
+			if (dist < (player->m_radius + pointSize))
+			{
+				player->grabbedPoint = p;
+				p->v_forces.x += player->v_speed.x * 750;
+				p->v_forces.y += player->v_speed.y * 250;
+				player->isHoldingLine = true;
+				break;
+			}
+		}
 
 	// aktualizacja po³o¿eñ
 	if (counter < 2)
@@ -122,18 +138,7 @@ void ofApp::update(){
 	// takie ma³o prowizoryczne aktualizowanie po³o¿enia
 	player->updatePosition();
 
-	// bardzo prowizoryczne sprawdzanie kolizji z punktami
-	if (keyIsDown['e'] && !player->isHoldingLine)
-		for (auto &p : myPoints)
-		{
-			float dist = player->v_position.distance(p->v_position);
-			if (dist < (player->m_radius + pointSize))
-			{
-				player->grabbedPoint = p;
-				player->isHoldingLine = true;
-				break;
-			}
-		}
+	
 
 	// bardzo prowizoryczne puszczanie siê linki
 	if (player->isHoldingLine && keyIsDown['w'] && !keyIsDown['e'])
@@ -153,6 +158,9 @@ void ofApp::draw(){
 	drawAllSprings();
 	ofDrawLine(0, groundHeight, ofGetWidth(), groundHeight);
 	if (player) player->draw();
+	// TARZAAAAN
+	tarzanFont.drawString("TARZAN", player->v_position.x-25, player->v_position.y-20);
+	//
 	if (debug)
 	{
 		ofDrawBitmapString("Debug ON", 10, 15);
@@ -162,7 +170,7 @@ void ofApp::draw(){
 			sprintf(str, "Grabbed line forces: %f %f",player->grabbedPoint->v_forces.x, player->grabbedPoint->v_forces.y);
 			ofDrawBitmapString(str, 10, 30);
 		}
-		
+
 		drawVelocities();
 		if (selectedPoint)
 		{
